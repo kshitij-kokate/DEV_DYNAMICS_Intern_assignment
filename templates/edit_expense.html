@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Expense - SplitApp{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-4">
+                <div class="d-flex align-items-center">
+                    <a href="{{ url_for('index') }}" class="btn btn-light btn-sm me-3">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div>
+                        <h4 class="mb-1">
+                            <i class="fas fa-edit text-primary me-2"></i>Edit Expense
+                        </h4>
+                        <p class="text-muted mb-0">Update expense details</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-body p-4">
+                <form method="POST" class="needs-validation" novalidate>
+                    <div class="row g-4">
+                        <!-- Amount -->
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="number" 
+                                       class="form-control form-control-lg" 
+                                       id="amount" 
+                                       name="amount" 
+                                       step="0.01" 
+                                       min="0.01" 
+                                       placeholder="0.00"
+                                       value="{{ expense.amount if not request.form.amount else request.form.amount }}"
+                                       required>
+                                <label for="amount">
+                                    <i class="fas fa-dollar-sign text-muted me-2"></i>Amount
+                                </label>
+                                <div class="invalid-feedback">
+                                    Please enter a valid amount.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Category -->
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <select class="form-select form-select-lg" id="category" name="category" required>
+                                    {% for value, label in categories %}
+                                        <option value="{{ value }}" 
+                                                {% if (request.form.category and request.form.category == value) or (not request.form.category and expense.category == value) %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <label for="category">
+                                    <i class="fas fa-tags text-muted me-2"></i>Category
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Description -->
+                        <div class="col-12">
+                            <div class="form-floating">
+                                <input type="text" 
+                                       class="form-control form-control-lg" 
+                                       id="description" 
+                                       name="description" 
+                                       placeholder="Expense description"
+                                       value="{{ expense.description if not request.form.description else request.form.description }}"
+                                       required>
+                                <label for="description">
+                                    <i class="fas fa-align-left text-muted me-2"></i>Description
+                                </label>
+                                <div class="invalid-feedback">
+                                    Please enter a description.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Paid By -->
+                        <div class="col-12">
+                            <label class="form-label fw-medium">
+                                <i class="fas fa-user text-muted me-2"></i>Paid By
+                            </label>
+                            <div class="row g-2">
+                                <div class="col-md-8">
+                                    <div class="form-floating">
+                                        <input type="text" 
+                                               class="form-control form-control-lg" 
+                                               id="paid_by" 
+                                               name="paid_by" 
+                                               placeholder="Person's name"
+                                               value="{{ expense.payer.name if not request.form.paid_by else request.form.paid_by }}"
+                                               list="peopleList"
+                                               required>
+                                        <label for="paid_by">Person's Name</label>
+                                        <div class="invalid-feedback">
+                                            Please enter who paid for this expense.
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Datalist for autocomplete -->
+                                    <datalist id="peopleList">
+                                        {% for person in people %}
+                                            <option value="{{ person.name }}">
+                                        {% endfor %}
+                                    </datalist>
+                                </div>
+                                
+                                {% if people %}
+                                <div class="col-md-4">
+                                    <div class="d-flex flex-wrap gap-1">
+                                        {% for person in people[:6] %}
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-primary person-quick-select {% if person.name == expense.payer.name %}active{% endif %}"
+                                                    onclick="selectPerson('{{ person.name }}')">
+                                                {{ person.name }}
+                                            </button>
+                                        {% endfor %}
+                                    </div>
+                                    {% if people|length > 6 %}
+                                        <small class="text-muted">+ {{ people|length - 6 }} more people</small>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Expense Info -->
+                    <div class="alert alert-light mt-4" role="alert">
+                        <div class="d-flex">
+                            <i class="fas fa-clock me-3 mt-1 text-muted"></i>
+                            <div>
+                                <small class="text-muted">
+                                    <strong>Created:</strong> {{ expense.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                                    {% if expense.updated_at != expense.created_at %}
+                                        <br><strong>Last Updated:</strong> {{ expense.updated_at.strftime('%B %d, %Y at %I:%M %p') }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Form Actions -->
+                    <div class="d-flex gap-3 mt-4 pt-3 border-top">
+                        <button type="submit" class="btn btn-primary btn-lg px-4">
+                            <i class="fas fa-save me-2"></i>Update Expense
+                        </button>
+                        <a href="{{ url_for('index') }}" class="btn btn-light btn-lg px-4">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="button" 
+                                class="btn btn-outline-danger btn-lg px-4 ms-auto"
+                                onclick="confirmDelete({{ expense.id }}, '{{ expense.description }}')">
+                            <i class="fas fa-trash me-2"></i>Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>Confirm Delete
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the expense "<span id="deleteExpenseName" class="fw-bold"></span>"?</p>
+                <p class="text-muted small mb-0">This action cannot be undone and will affect all balance calculations.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Quick person selection
+function selectPerson(name) {
+    document.getElementById('paid_by').value = name;
+    // Remove active state from all buttons
+    document.querySelectorAll('.person-quick-select').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    // Add active state to clicked button
+    event.target.classList.add('active');
+}
+
+// Delete confirmation
+function confirmDelete(expenseId, expenseName) {
+    document.getElementById('deleteExpenseName').textContent = expenseName;
+    document.getElementById('deleteForm').action = '/delete_expense/' + expenseId;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+
+// Enhanced form interactions
+document.addEventListener('DOMContentLoaded', function() {
+    // Format amount on blur
+    document.getElementById('amount').addEventListener('blur', function() {
+        if (this.value) {
+            this.value = parseFloat(this.value).toFixed(2);
+        }
+    });
+    
+    // Capitalize person name
+    document.getElementById('paid_by').addEventListener('input', function() {
+        let words = this.value.split(' ');
+        words = words.map(word => {
+            if (word.length > 0) {
+                return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+            }
+            return word;
+        });
+        this.value = words.join(' ');
+    });
+});
+</script>
+{% endblock %}

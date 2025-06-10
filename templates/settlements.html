@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}Settlements - SplitApp{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1">
+                    <i class="fas fa-exchange-alt text-primary me-2"></i>Settlement Summary
+                </h2>
+                <p class="text-muted mb-0">Optimized transactions to settle all balances</p>
+            </div>
+            <a href="{{ url_for('balances') }}" class="btn btn-outline-primary">
+                <i class="fas fa-balance-scale me-2"></i>View Balances
+            </a>
+        </div>
+
+        {% if settlements %}
+        <!-- Settlement Overview -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card stats-card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="stats-icon bg-success bg-opacity-10 text-success me-3">
+                                <i class="fas fa-handshake"></i>
+                            </div>
+                            <div>
+                                <h6 class="card-title text-muted mb-1">Total Settlements</h6>
+                                <h4 class="mb-0">{{ settlements|length }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card stats-card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="stats-icon bg-warning bg-opacity-10 text-warning me-3">
+                                <i fas fa-coins"></i>
+                            </div>
+                            <div>
+                                <h6 class="card-title text-muted mb-1">Total Amount</h6>
+                                <h4 class="mb-0">${{ "%.2f"|format(settlements|sum(attribute='amount')) }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card stats-card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="stats-icon bg-info bg-opacity-10 text-info me-3">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div>
+                                <h6 class="card-title text-muted mb-1">People Involved</h6>
+                                <h4 class="mb-0">{{ balances|length }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settlements List -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="mb-0">
+                    <i class="fas fa-list-alt text-primary me-2"></i>Required Transactions
+                </h5>
+                <small class="text-muted">These transactions will settle all balances with minimum transfers</small>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for settlement in settlements %}
+                    <div class="list-group-item border-0 py-4">
+                        <div class="d-flex align-items-center">
+                            <!-- From Person -->
+                            <div class="d-flex align-items-center me-4">
+                                <div class="avatar bg-danger bg-opacity-10 text-danger rounded-circle d-flex align-items-center justify-content-center me-3">
+                                    {{ settlement.from[0].upper() }}
+                                </div>
+                                <div>
+                                    <div class="fw-medium">{{ settlement.from }}</div>
+                                    <small class="text-danger">Pays</small>
+                                </div>
+                            </div>
+
+                            <!-- Arrow and Amount -->
+                            <div class="d-flex align-items-center flex-grow-1 justify-content-center">
+                                <div class="settlement-flow">
+                                    <i class="fas fa-arrow-right text-primary mx-3"></i>
+                                    <div class="settlement-amount bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+                                        <i class="fas fa-dollar-sign me-1"></i>
+                                        <strong>${{ "%.2f"|format(settlement.amount) }}</strong>
+                                    </div>
+                                    <i class="fas fa-arrow-right text-primary mx-3"></i>
+                                </div>
+                            </div>
+
+                            <!-- To Person -->
+                            <div class="d-flex align-items-center ms-4">
+                                <div>
+                                    <div class="fw-medium text-end">{{ settlement.to }}</div>
+                                    <small class="text-success">Receives</small>
+                                </div>
+                                <div class="avatar bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center ms-3">
+                                    {{ settlement.to[0].upper() }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Settlement Progress Bar -->
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted">Settlement Progress</small>
+                                <small class="text-muted">Ready to process</small>
+                            </div>
+                            <div class="progress" style="height: 4px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Settlement Instructions -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-info-circle text-info me-2"></i>How to Settle
+                </h6>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <div class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center">1</div>
+                            </div>
+                            <div class="ms-3">
+                                <h6 class="mb-1">Review Transactions</h6>
+                                <small class="text-muted">Check all settlement amounts above</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <div class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center">2</div>
+                            </div>
+                            <div class="ms-3">
+                                <h6 class="mb-1">Make Payments</h6>
+                                <small class="text-muted">Transfer money as shown</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <div class="step-number bg-success text-white rounded-circle d-flex align-items-center justify-content-center">3</div>
+                            </div>
+                            <div class="ms-3">
+                                <h6 class="mb-1">All Settled!</h6>
+                                <small class="text-muted">Everyone's balance becomes zero</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <!-- No Settlements Needed -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                </div>
+                <h4 class="text-success mb-3">All Settled!</h4>
+                <p class="text-muted mb-4">No settlements are needed at this time. All balances are already even.</p>
+                
+                {% if balances %}
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <div class="alert alert-light" role="alert">
+                            <h6 class="alert-heading">Current Status:</h6>
+                            <ul class="list-unstyled mb-0">
+                                {% for person, balance in balances.items() %}
+                                <li class="d-flex justify-content-between">
+                                    <span>{{ person }}:</span>
+                                    <span class="{% if balance > 0 %}text-success{% elif balance < 0 %}text-danger{% else %}text-muted{% endif %}">
+                                        {% if balance > 0 %}+{% endif %} ${{ "%.2f"|format(balance) }}
+                                    </span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="d-flex gap-3 justify-content-center">
+                    <a href="{{ url_for('add_expense') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add Expense
+                    </a>
+                    <a href="{{ url_for('balances') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-balance-scale me-2"></i>View Balances
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add smooth animations to settlement cards
+    const settlements = document.querySelectorAll('.list-group-item');
+    settlements.forEach((settlement, index) => {
+        settlement.style.opacity = '0';
+        settlement.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            settlement.style.transition = 'all 0.5s ease';
+            settlement.style.opacity = '1';
+            settlement.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // Add hover effects to settlement items
+    settlements.forEach(settlement => {
+        settlement.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+        });
+        
+        settlement.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = 'none';
+        });
+    });
+});
+</script>
+{% endblock %}

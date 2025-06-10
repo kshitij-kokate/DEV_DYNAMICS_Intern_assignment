@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - SplitApp{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Summary Cards -->
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card stats-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon bg-primary bg-opacity-10 text-primary me-3">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div>
+                        <h6 class="card-title text-muted mb-1">Total Expenses</h6>
+                        <h4 class="mb-0">${{ "%.2f"|format(total_expenses) }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card stats-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon bg-success bg-opacity-10 text-success me-3">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <div>
+                        <h6 class="card-title text-muted mb-1">Total Expenses</h6>
+                        <h4 class="mb-0">{{ expenses|length }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card stats-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon bg-info bg-opacity-10 text-info me-3">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <h6 class="card-title text-muted mb-1">People</h6>
+                        <h4 class="mb-0">{{ people|length }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card stats-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon bg-warning bg-opacity-10 text-warning me-3">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <div>
+                        <h6 class="card-title text-muted mb-1">Per Person</h6>
+                        <h4 class="mb-0">${{ "%.2f"|format(total_expenses / people|length if people|length > 0 else 0) }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    <i class="fas fa-bolt text-primary me-2"></i>Quick Actions
+                </h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <a href="{{ url_for('add_expense') }}" class="btn btn-primary btn-lg w-100 quick-action-btn">
+                            <i class="fas fa-plus mb-2"></i>
+                            <div>Add Expense</div>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('balances') }}" class="btn btn-outline-primary btn-lg w-100 quick-action-btn">
+                            <i class="fas fa-balance-scale mb-2"></i>
+                            <div>View Balances</div>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('settlements') }}" class="btn btn-outline-primary btn-lg w-100 quick-action-btn">
+                            <i class="fas fa-exchange-alt mb-2"></i>
+                            <div>Settlements</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Expenses -->
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list text-primary me-2"></i>Recent Expenses
+                    </h5>
+                    {% if expenses %}
+                    <small class="text-muted">Showing latest {{ expenses|length }} expenses</small>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if expenses %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0 py-3">Description</th>
+                                    <th class="border-0 py-3">Amount</th>
+                                    <th class="border-0 py-3">Paid By</th>
+                                    <th class="border-0 py-3">Category</th>
+                                    <th class="border-0 py-3">Date</th>
+                                    <th class="border-0 py-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for expense in expenses %}
+                                <tr class="expense-row">
+                                    <td class="py-3">
+                                        <div class="fw-medium">{{ expense.description }}</div>
+                                    </td>
+                                    <td class="py-3">
+                                        <span class="badge bg-success bg-opacity-10 text-success px-3 py-2">
+                                            ${{ "%.2f"|format(expense.amount) }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                {{ expense.payer.name[0].upper() }}
+                                            </div>
+                                            {{ expense.payer.name }}
+                                        </div>
+                                    </td>
+                                    <td class="py-3">
+                                        <span class="badge bg-light text-dark">
+                                            <i class="fas fa-{{ 'utensils' if expense.category == 'Food' else 'plane' if expense.category == 'Travel' else 'home' if expense.category == 'Utilities' else 'film' if expense.category == 'Entertainment' else 'tag' }} me-1"></i>
+                                            {{ expense.category }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 text-muted">
+                                        {{ expense.created_at.strftime('%m/%d/%Y') }}
+                                    </td>
+                                    <td class="py-3">
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('edit_expense', expense_id=expense.id) }}" 
+                                               class="btn btn-sm btn-outline-primary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                    onclick="confirmDelete({{ expense.id }}, '{{ expense.description }}')" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="mb-3">
+                            <i class="fas fa-receipt text-muted" style="font-size: 3rem;"></i>
+                        </div>
+                        <h5 class="text-muted">No expenses yet</h5>
+                        <p class="text-muted mb-3">Start by adding your first expense to begin tracking.</p>
+                        <a href="{{ url_for('add_expense') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Add First Expense
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>Confirm Delete
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the expense "<span id="deleteExpenseName" class="fw-bold"></span>"?</p>
+                <p class="text-muted small mb-0">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDelete(expenseId, expenseName) {
+    document.getElementById('deleteExpenseName').textContent = expenseName;
+    document.getElementById('deleteForm').action = '/delete_expense/' + expenseId;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+</script>
+{% endblock %}
